@@ -41,6 +41,8 @@ jobs:
       - name: Run backend tests
         env:
           JWT_SECRET: flowday-ci-test-secret
+          EMAIL_USER: flowday-ci-test@example.com
+          EMAIL_APP_PASSWORD: flowday-ci-test-password
         run: npm --workspace backend test
 
       - name: Install Playwright Chromium
