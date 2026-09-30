@@ -39,6 +39,8 @@ jobs:
         run: npm run build:backend
 
       - name: Run backend tests
+        env:
+          JWT_SECRET: flowday-ci-test-secret
         run: npm --workspace backend test
 
       - name: Install Playwright Chromium
