@@ -18,6 +18,10 @@
 # Testing
 /coverage
 
+# Playwright
+/playwright-report/
+/test-results/
+
 # Environment files
 .env*
 
