@@ -33,22 +33,23 @@ function formatToday() {
 }
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(
+    null
+  );
 
-  const [greeting, setGreeting] =
-    useState("");
-
-  const [date, setDate] =
-    useState("");
+  const [greeting, setGreeting] = useState("");
+  const [date, setDate] = useState("");
 
   useEffect(() => {
-    const now = new Date();
+    const timeoutId = window.setTimeout(() => {
+      const now = new Date();
 
-    setGreeting(
-      getGreeting(now.getHours())
-    );
+      setGreeting(
+        getGreeting(now.getHours())
+      );
 
-    setDate(formatToday());
+      setDate(formatToday());
+    }, 0);
 
     async function loadUser() {
       try {
@@ -77,6 +78,10 @@ export default function Header() {
     }
 
     loadUser();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   return (

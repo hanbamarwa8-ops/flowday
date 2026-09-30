@@ -12,6 +12,7 @@ import {
 
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import AuthGuard from "@/components/AuthGuard";
 
 const FOCUS_DURATION = 25 * 60;
 
@@ -69,12 +70,15 @@ export default function FocusPage() {
     100;
 
   return (
+    <AuthGuard>
     <div className="flex min-h-screen bg-[#faf9ff]">
-    <Sidebar />
-    <div className="flex min-w-0 flex-1 flex-col">
-      <Header />
-      <main className="flex-1 px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-6xl">
+      <Sidebar />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header />
+
+        <main className="flex-1 px-6 py-8 lg:px-10">
+          <div className="mx-auto max-w-6xl">
 
         {/* Header */}
 
@@ -190,8 +194,9 @@ export default function FocusPage() {
         </section>
 
         </div>
-      </main>
+        </main>
+      </div>
     </div>
-  </div>
+  </AuthGuard>
 );
 }

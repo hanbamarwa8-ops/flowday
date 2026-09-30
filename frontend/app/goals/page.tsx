@@ -13,6 +13,7 @@ import {
 
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import AuthGuard from "@/components/AuthGuard";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -84,43 +85,63 @@ export default function GoalsPage() {
 
   const [error, setError] = useState("");
 
-  async function loadGoals() {
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `${API_URL}/api/goals`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(
-          data.message ||
-            "Unable to load your goals."
-        );
-        return;
-      }
-
-      setGoals(data.goals || []);
-    } catch (error) {
-      console.error("Load goals error:", error);
-
-      setError(
-        "Unable to connect to FlowDay."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadGoals();
+    let cancelled = false;
+  
+    const controller = new AbortController();
+  
+    fetch(`${API_URL}/api/goals`, {
+      method: "GET",
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data = await response.json();
+  
+        if (cancelled) {
+          return;
+        }
+  
+        if (!response.ok) {
+          setError(
+            data.message ||
+              "Unable to load your goals."
+          );
+  
+          return;
+        }
+  
+        setGoals(data.goals || []);
+        setError("");
+      })
+      .catch((error) => {
+        if (
+          cancelled ||
+          error instanceof DOMException &&
+            error.name === "AbortError"
+        ) {
+          return;
+        }
+  
+        console.error(
+          "Load goals error:",
+          error
+        );
+  
+        setError(
+          "Unable to connect to FlowDay."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+  
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   // CREATE GOAL
@@ -394,14 +415,15 @@ export default function GoalsPage() {
   ).length;
 
   return (
+    <AuthGuard>
     <div className="flex min-h-screen bg-[#faf9ff]">
-    <Sidebar />
+      <Sidebar />
 
-    <div className="flex min-w-0 flex-1 flex-col">
-      <Header />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header />
 
-      <main className="flex-1 px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-6xl">
+        <main className="flex-1 px-6 py-8 lg:px-10">
+          <div className="mx-auto max-w-6xl">
 
         {/* HEADER */}
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
@@ -895,8 +917,9 @@ export default function GoalsPage() {
         </Link>
 
         </div>
-      </main>
+        </main>
+      </div>
     </div>
-  </div>
+  </AuthGuard>
 );
 }

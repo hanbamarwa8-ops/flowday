@@ -1,6 +1,7 @@
 "use client";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import AuthGuard from "@/components/AuthGuard";
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
@@ -55,43 +56,63 @@ export default function HabitsPage() {
 
   // LOAD HABITS
   
-  async function loadHabits() {
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `${API_URL}/api/habits`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(
-          data.message ||
-            "Unable to load your habits."
-        );
-        return;
-      }
-
-      setHabits(data.habits || []);
-    } catch (error) {
-      console.error("Load habits error:", error);
-
-      setError(
-        "Unable to connect to FlowDay."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadHabits();
+    let cancelled = false;
+  
+    const controller = new AbortController();
+  
+    fetch(`${API_URL}/api/habits`, {
+      method: "GET",
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data = await response.json();
+  
+        if (cancelled) {
+          return;
+        }
+  
+        if (!response.ok) {
+          setError(
+            data.message ||
+              "Unable to load your habits."
+          );
+  
+          return;
+        }
+  
+        setHabits(data.habits || []);
+        setError("");
+      })
+      .catch((error) => {
+        if (
+          cancelled ||
+          error instanceof DOMException &&
+            error.name === "AbortError"
+        ) {
+          return;
+        }
+  
+        console.error(
+          "Load habits error:",
+          error
+        );
+  
+        setError(
+          "Unable to connect to FlowDay."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+  
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   // CREATE HABIT
@@ -380,6 +401,7 @@ export default function HabitsPage() {
     ).length;
 
   return (
+    <AuthGuard>
   <div className="flex min-h-screen bg-[#faf9ff]">
   <Sidebar />
 
@@ -865,5 +887,6 @@ export default function HabitsPage() {
       </main>
     </div>
   </div> 
+  </AuthGuard>
   );
 }
