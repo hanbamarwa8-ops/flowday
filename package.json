@@ -12,7 +12,8 @@
     "lint:frontend": "npm --workspace frontend run lint",
     "dev:backend": "npm --workspace backend run dev",
     "build:backend": "npm --workspace backend run build",
-    "start:backend": "npm --workspace backend run start"
+    "start:backend": "npm --workspace backend run start",
+    "start:e2e:backend": "npm --workspace backend run start:e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0"
