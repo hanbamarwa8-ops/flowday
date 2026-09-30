@@ -8,7 +8,7 @@ import {
   test,
 } from "@jest/globals";
 
-import type { Server } from "node:http";
+import { createServer } from "node:http";
 
 import {
   clearTestDB,
@@ -16,8 +16,7 @@ import {
   disconnectTestDB,
 } from "./mongo.setup.js";
 
-let server: Server;
-
+let server: ReturnType<typeof createServer>;
 async function signup(
   agent: ReturnType<typeof request.agent>,
   name: string,
