@@ -161,11 +161,15 @@ export async function startServer() {
   try {
     await connectDB();
 
-    server.listen(PORT, () => {
-      console.log(
-        `FlowDay backend running on http://localhost:${PORT}`
-      );
-    });
+    server.listen(
+      PORT,
+      "0.0.0.0",
+      () => {
+        console.log(
+          `FlowDay backend running on port ${PORT}`
+        );
+      }
+    );
   } catch (error) {
     console.error(
       "Failed to start FlowDay backend:",
