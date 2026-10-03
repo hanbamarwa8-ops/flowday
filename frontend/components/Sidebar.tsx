@@ -10,6 +10,7 @@ import {
   Flame,
   Timer,
   User,
+  ShieldCheck,
 } from "lucide-react";
 
 import LogoutButton from "@/components/LogoutButton";
@@ -49,6 +50,7 @@ const navigation = [
 type UserData = {
   name: string;
   email: string;
+  role: "USER" | "ADMIN";
 };
 
 export default function Sidebar() {
@@ -99,7 +101,6 @@ export default function Sidebar() {
           href="/dashboard"
           className="flex items-center gap-3"
         >
-          {/* Logo icon */}
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500 shadow-sm">
             <Timer
               size={21}
@@ -108,7 +109,6 @@ export default function Sidebar() {
             />
           </div>
 
-          {/* Logo text */}
           <div>
             <h1 className="text-xl font-bold tracking-tight text-gray-900">
               FlowDay
@@ -149,13 +149,37 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        {/* ADMIN */}
+
+        {user?.role === "ADMIN" && (
+          <>
+            <div className="my-4 h-px bg-gray-100" />
+
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                pathname === "/admin"
+                  ? "bg-purple-100 text-purple-700"
+                  : "text-gray-500 hover:bg-purple-50 hover:text-purple-600"
+              }`}
+            >
+              <ShieldCheck
+                size={20}
+                strokeWidth={1.8}
+              />
+
+              <span>Admin</span>
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* USER + LOGOUT */}
 
       <div className="mt-6 rounded-2xl bg-purple-50 p-4">
 
-        {/* User information */}
+        {/* USER INFORMATION */}
 
         <div className="flex items-center gap-3">
 
@@ -172,17 +196,19 @@ export default function Sidebar() {
             </p>
 
             <p className="text-xs text-gray-400">
-              Free plan
+              {user?.role === "ADMIN"
+                ? "Administrator"
+                : "Free plan"}
             </p>
           </div>
 
         </div>
 
-        {/* Separator */}
+        {/* SEPARATOR */}
 
         <div className="my-4 h-px bg-purple-100" />
 
-        {/* Logout */}
+        {/* LOGOUT */}
 
         <LogoutButton />
 
