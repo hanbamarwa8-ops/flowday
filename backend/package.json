@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "tsc",
-        "start": "node dist/server.js",
+        "start": "node dist/src/server.js",
         "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js",
         "start:e2e": "tsx scripts/e2e-server.ts"
     },
