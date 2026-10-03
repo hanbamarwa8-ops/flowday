@@ -1,11 +1,13 @@
 import "dotenv/config";
 import http from "node:http";
 
+
 import { connectDB } from "./lib/mongodb.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { taskRouter } from "./routes/task.routes.js";
 import { goalRouter } from "./routes/goal.routes.js";
 import { habitRouter } from "./routes/habit.routes.js";
+import { adminRouter } from "./routes/admin.routes.js";
 
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -79,6 +81,14 @@ export const server = http.createServer(
         await habitRouter(req, res);
 
       if (habitHandled) {
+        return;
+      
+      }
+
+      // ADMIN ROUTES
+      const handledByAdmin =
+      await adminRouter(req, res);
+      if (handledByAdmin) {
         return;
       }
 

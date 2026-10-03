@@ -198,8 +198,8 @@ describe(
           id: expect.any(String),
           name: "Test User",
           email: "test@example.com",
+          role: "USER",
         });
-
 
         // logout
 

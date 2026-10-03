@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export type UserRole = "USER" | "ADMIN";
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -18,6 +20,13 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
+      required: true,
+    },
+
+    role: {
+      type: String,
+      enum: ["USER", "ADMIN"],
+      default: "USER",
       required: true,
     },
 
