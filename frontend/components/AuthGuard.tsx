@@ -15,6 +15,29 @@ type AuthGuardProps = {
   children: ReactNode;
 };
 
+// Prevent multiple refresh requests from running at the same time.
+
+let refreshPromise: Promise<Response> | null = null;
+
+function refreshSession(): Promise<Response> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = fetch(
+    `${API_URL}/api/auth/refresh`,
+    {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    }
+  ).finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
+}
+
 export default function AuthGuard({
   children,
 }: AuthGuardProps) {
@@ -28,7 +51,9 @@ export default function AuthGuard({
 
     async function checkAuth() {
       try {
-        const response = await fetch(
+        // CHECK ACCESS TOKEN
+
+        let response = await fetch(
           `${API_URL}/api/auth/me`,
           {
             method: "GET",
@@ -37,10 +62,49 @@ export default function AuthGuard({
           }
         );
 
+        //  ACCESS TOKEN EXPIRED
+
+        if (response.status === 401) {
+          const refreshResponse =
+            await refreshSession();
+
+
+          //  REFRESH FAILED
+
+
+          if (!refreshResponse.ok) {
+            if (isMounted) {
+              router.replace("/login");
+            }
+
+            return;
+          }
+
+          // RETRY /ME
+
+          response = await fetch(
+            `${API_URL}/api/auth/me`,
+            {
+              method: "GET",
+              credentials: "include",
+              cache: "no-store",
+            }
+          );
+        }
+
+
+        // AUTHENTICATION FAILED
+
+
         if (!response.ok) {
-          router.replace("/login");
+          if (isMounted) {
+            router.replace("/login");
+          }
+
           return;
         }
+
+        // AUTHENTICATED
 
         if (isMounted) {
           setIsCheckingAuth(false);
@@ -51,7 +115,9 @@ export default function AuthGuard({
           error
         );
 
-        router.replace("/login");
+        if (isMounted) {
+          router.replace("/login");
+        }
       }
     }
 
@@ -62,8 +128,9 @@ export default function AuthGuard({
     };
   }, [router]);
 
-  // Pendant la vérification de la session,
-  // on n'affiche pas le contenu privé.
+  // LOADING
+
+
   if (isCheckingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#faf9ff]">

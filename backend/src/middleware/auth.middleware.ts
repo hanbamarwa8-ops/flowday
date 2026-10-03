@@ -1,60 +1,95 @@
-import type {IncomingMessage,ServerResponse,} from "node:http";
-  
-  import User from "../models/User.js";
-  import { getAuthToken } from "../lib/cookies.js";
-  import { verifyToken } from "../lib/jwt.js";
-  
-  export async function authenticate(
-    req: IncomingMessage,
-    res: ServerResponse
-  ) {
+import type {
+  IncomingMessage,
+  ServerResponse,
+} from "node:http";
+
+import User from "../models/User.js";
+
+import {
+  getAuthToken,
+} from "../lib/cookies.js";
+
+import {
+  verifyAccessToken,
+} from "../lib/jwt.js";
+
+
+function sendJson(
+  res: ServerResponse,
+  statusCode: number,
+  data: unknown
+) {
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json",
+  });
+
+  res.end(JSON.stringify(data));
+}
+
+
+export async function authenticate(
+  req: IncomingMessage,
+  res: ServerResponse
+) {
+  try {
+
     const token = getAuthToken(req);
-  
+
+
+    // NO ACCESS TOKEN
+
     if (!token) {
-      res.writeHead(401, {
-        "Content-Type": "application/json",
+      sendJson(res, 401, {
+        message: "Not authenticated",
       });
-  
-      res.end(
-        JSON.stringify({
-          message: "Not authenticated",
-        })
-      );
-  
+
       return null;
     }
-  
-    const payload = verifyToken(token);
-  
+
+
+    // VERIFY ACCESS TOKEN
+
+    const payload = verifyAccessToken(token);
+
+
     if (!payload) {
-      res.writeHead(401, {
-        "Content-Type": "application/json",
+      sendJson(res, 401, {
+        message: "Invalid or expired access token",
       });
-  
-      res.end(
-        JSON.stringify({
-          message: "Invalid or expired token",
-        })
-      );
-  
+
       return null;
     }
-  
-    const user = await User.findById(payload.userId);
-  
+
+
+    // FIND USER
+
+    const user = await User.findById(
+      payload.userId
+    );
+
+
     if (!user) {
-      res.writeHead(401, {
-        "Content-Type": "application/json",
+      sendJson(res, 401, {
+        message: "User not found",
       });
-  
-      res.end(
-        JSON.stringify({
-          message: "User not found",
-        })
-      );
-  
+
       return null;
     }
-  
+
+
     return user;
+
+  } catch (error) {
+
+    console.error(
+      "Authentication error:",
+      error
+    );
+
+    sendJson(res, 401, {
+      message: "Not authenticated",
+    });
+
+    return null;
   }
+}
